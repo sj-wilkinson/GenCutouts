@@ -13,7 +13,16 @@ from multiprocessing import Pool
 def GenerateCutout_worker(args):
     
     i,r,d,z,t1,t2,t3,t4 = args
+    r = float(r)
+    d = float(d)
+    z = float(z)
     kpc = 150
+    
+    # implicit assumption that dr5 tile list is inclusive of lsb list
+    t1.replace("CFIS", "CFIS_LSB")
+    t2.replace("CFIS", "CFIS_LSB")
+    t3.replace("CFIS", "CFIS_LSB")
+    t4.replace("CFIS", "CFIS_LSB")
 
     # set up paths
     tpath = '/arc10/swilkinson/CFIS_DR5/tiles/' # path to tiles 
@@ -25,7 +34,9 @@ def GenerateCutout_worker(args):
     # check if estimated tiles are in the CFIS DR5 tile list
     closest_four = np.array([t1,t2,t3,t4])
     tiles = np.loadtxt('/arc10/swilkinson/CFIS_DR5/tile_list_dr5_lsb.txt', dtype = str) # implicit assumption that dr5 tile list is inclusive of lsb list
-    matched, idx, idx2 = np.intersect1d(closest_four, tiles)
+    matched, idx, idx2 = np.intersect1d(closest_four, tiles, return_indices = True)
+    
+    print(len(matched), tiles[0], closest_four, closest_four[idx])
 
     tiles_to_check = closest_four[idx]
       
@@ -152,7 +163,6 @@ def add_to_header(header, kpc, i):
     return header
 
 
-
 if __name__ == '__main__':
     
     
@@ -206,13 +216,13 @@ if __name__ == '__main__':
     t1    = t1[args]
     '''
     
-    inputs = np.vstack([objID,ra,dec,z,t1,t2,t3,t4])
+    inputs = np.array([objID,ra,dec,z,t1,t2,t3,t4])
     
     print('Start looping through tiles...')
     
     for i, primary_tile in enumerate(np.unique(t1)):
 
-        inputs_on_this_tile = inputs[t1==primary_tile]
+        inputs_on_this_tile = inputs[:,t1==primary_tile].T
         
         pool = Pool(4)
         pool.map(GenerateCutout_worker, inputs_on_this_tile)
