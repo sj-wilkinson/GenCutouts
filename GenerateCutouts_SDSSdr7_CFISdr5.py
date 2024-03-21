@@ -178,7 +178,7 @@ if __name__ == '__main__':
     z     = np.array(db_data[3], dtype = float)
 
     # match to those with coverage
-    matched, idx_table, idx_covered = np.intersect1d(objID, covered, return_indices = True)
+    matched, idx_table, idx_covered = np.intersect1d(objID, objID_covered, return_indices = True)
 
     objID = objID[idx_table]
     ra    = ra[idx_table]
